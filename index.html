@@ -16,7 +16,6 @@ h1{font-size:20px;margin:6px 2px 12px}h2{font-size:17px;margin:0 0 8px}
 .tg{font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--bd);color:var(--mut);white-space:nowrap}
 .tg.ok{background:var(--okb);color:var(--ok)}.tg.wn{background:var(--wnb);color:var(--wn)}.tg.bad{background:var(--badb);color:var(--bad)}
 .b{display:block;width:100%;border:0;border-radius:10px;background:var(--pri);color:#fff;font:600 15px inherit;padding:12px;margin-top:8px;cursor:pointer;text-align:center}
-:root[data-theme="dark"] .b{color:#06201c}
 .b.g{background:transparent;color:var(--pri);border:1px solid var(--bd)}.b.s{width:auto;margin:0;padding:8px 12px;font-size:14px}
 .i{border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 input,select,textarea{width:100%;padding:11px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;margin:4px 0 8px}
@@ -34,34 +33,47 @@ nav button{flex:1;border:0;background:none;color:var(--mut);font:600 11px inheri
 .rc{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:12px;white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace;margin:8px 0}a.b{text-decoration:none}.mx{border-collapse:collapse;font-size:13px}.mx th,.mx td{padding:6px 7px;text-align:center}.mx .nm{text-align:left;font-weight:600;position:sticky;left:0;background:var(--card)}#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#111;color:#fff;padding:8px 14px;border-radius:99px;font-size:13px;display:none;z-index:20}
 body{background:radial-gradient(900px 420px at 80% -10%,#12324a66,transparent),var(--bg)}
 .card{border-radius:18px}.row{border-radius:16px}
-.b{color:#04231a;background:linear-gradient(135deg,#34d399,#22d3ee)}
+.b{color:#04231a;background:linear-gradient(135deg,#34d399,#22d3ee)}.b.g{background:transparent;color:var(--pri)}
 .hero{background:linear-gradient(135deg,#0f3d3e,#14304f 60%,#1b2559);border:1px solid #2b4a63;box-shadow:0 10px 30px #0006}
 .hero .big{color:#fff}.hero .m{color:#a9c1d6}.hero .i{border-color:#ffffff33;color:#fff}.hero .bar{background:#ffffff22}.hero .bar i{background:#34d399}
-.av{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#1f3b57,#2a2f6b);color:#cfe3ff;flex:none}
+.av{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(135deg,#1f3b57,#2a2f6b);color:#cfe3ff;flex:none;cursor:pointer}
 nav{background:#0d131bd9;backdrop-filter:blur(14px)}
-input,select,textarea{background:#0d131b}.seg button.on{background:#34d3991f}.ov{backdrop-filter:blur(3px)}
+input,select,textarea{background:#0d131b}.ov{backdrop-filter:blur(3px)}
 .login{text-align:center;max-width:360px;margin:12vh auto 0}.logo{font-size:44px;width:84px;height:84px;margin:0 auto 12px;border-radius:26px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#34d399,#22d3ee)}
-.pb{height:5px;border-radius:9px;background:var(--bd);margin-top:6px;overflow:hidden}.pb i{display:block;height:100%;background:var(--ok)}.pb i.w{background:var(--wn)}.pb i.p{background:#60a5fa}.av{cursor:pointer}.row{flex-wrap:wrap}.row .f{flex:1 1 140px}
+.pb{height:5px;border-radius:9px;background:var(--bd);margin-top:6px;overflow:hidden}.pb i{display:block;height:100%;background:var(--ok)}.pb i.w{background:var(--wn)}.pb i.p{background:#60a5fa}.row{flex-wrap:wrap}.row .f{flex:1 1 140px}
+.tg.rc2{background:#a78bfa26;color:#c4b5fd}
 </style></head><body>
 <div id="app"></div><nav id="nav"></nav><div id="modal"></div><div id="toast"></div>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const K='pasanaco_v1',z=n=>String(n).padStart(2,'0');
+const z=n=>String(n).padStart(2,'0');
 const loc=d=>d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes());
 const today=()=>loc(new Date()).slice(0,10);
-let S={cfg:{nombre:'Mi Pasanaco',monto:100,freq:7,inicio:today(),hora:'20:00',umbral:80,multa:0,qr:''},people:[],pays:{}},tab='cobro',ronda=0,M={};
-try{const r=localStorage.getItem(K);if(r)S=JSON.parse(r)}catch(e){}norm();
+let S={cfg:{nombre:'Mi Pasanaco',monto:100,freq:7,dia:-1,inicio:today(),hora:'20:00',umbral:80,multa:0,qr:''},people:[],pays:{}},tab='cobro',ronda=0,M={};
+norm();
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2200)}
-function save(){const j=JSON.stringify(S);try{localStorage.setItem(K,j)}catch(e){}if(cloud&&FB.push)FB.push(j).catch(()=>toast('Sin conexión, se guardará al volver'))}
+/* Solo nube: ya no se guarda nada en el dispositivo */
+function save(){if(cloud&&FB.push)FB.push(JSON.stringify(S)).catch(()=>toast('Sin conexión, se guardará al volver'));else toast('Firebase no está configurado')}
 const N=()=>S.people.length,key=(r,id)=>r+'-'+id;
-const due=r=>{const[y,m,d]=S.cfg.inicio.split('-').map(Number),[h,mi]=S.cfg.hora.split(':').map(Number);return new Date(y,m-1,d+(r-1)*S.cfg.freq,h,mi)};
+/* Fecha límite de la ronda r. Si hay día fijo (viernes, sábado...), la 1.ª ronda cae en ese día y las demás cada "freq" días */
+const due=r=>{const[y,m,d]=S.cfg.inicio.split('-').map(Number),[h,mi]=S.cfg.hora.split(':').map(Number);const b=new Date(y,m-1,d),w=S.cfg.dia;if(w>=0)b.setDate(b.getDate()+(w-b.getDay()+7)%7);return new Date(b.getFullYear(),b.getMonth(),b.getDate()+(r-1)*S.cfg.freq,h,mi)};
 const curRound=()=>{let r=1;while(r<N()&&due(r)<new Date())r++;return r};
 const fd=t=>new Date(t).toLocaleString('es-BO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 const bs=n=>'Bs. '+Number(n).toLocaleString('es-BO');
 const dur=ms=>{const m=Math.max(1,Math.round(ms/6e4));if(m<60)return m+' min';const h=Math.floor(m/60);return h<48?h+' h '+(m%60)+' min':Math.floor(h/24)+' d'};
+const mon=()=>+S.cfg.monto||0;
+/* El que recibe en la ronda r NO paga cuota ese día (solo si su turno ya está definido) */
+const isRec=(r,p)=>S.people[r-1]===p&&!!(p.fijo||p.sort);
+const exp=r=>mon()*(N()-(S.people[r-1]&&isRec(r,S.people[r-1])?1:0));
+const totE=()=>{let t=0;for(let k=1;k<=N();k++)t+=exp(k);return t};
+const abon=(r,id)=>(S.parc&&S.parc[key(r,id)])||[];
+const sumA=a=>Math.round(a.reduce((t,x)=>t+x.mt,0)*100)/100;
+const paidAmt=(r,id)=>S.pays[key(r,id)]?mon():sumA(abon(r,id));
+const gotR=r=>S.people.reduce((t,p)=>t+paidAmt(r,p.id),0);
+const totG=()=>{let t=0;for(let k=1;k<=N();k++)t+=gotR(k);return t};
 function wa(r,p){let t=p.tel.replace(/\D/g,'');if(t.length==8)t='591'+t;return 'https://wa.me/'+t+'?text='+encodeURIComponent(`Hola ${p.name}, te recordamos tu cuota${sumA(abon(r,p.id))?' (te faltan '+bs(+(mon()-sumA(abon(r,p.id))).toFixed(2))+')':' de '+bs(S.cfg.monto)} del ${S.cfg.nombre} (ronda ${r}). Vence ${fd(due(r))}. Pagando a tiempo ganas puntos y prioridad para el próximo pasanaco 🏆`)}
-function stats(p){let ok=0,tot=0,pts=0,od=0,st=0;const now=Date.now();for(let r=1;r<=N();r++){const y=S.pays[key(r,p.id)];if(y){tot++;if(y.ok){ok++;pts+=10;st++}else{pts+=2;st=0}}else if(due(r)<now){tot++;od++;st=0}}
+function stats(p){let ok=0,tot=0,pts=0,od=0,st=0;const now=Date.now();for(let r=1;r<=N();r++){if(isRec(r,p))continue;const y=S.pays[key(r,p.id)];if(y){tot++;if(y.ok){ok++;pts+=10;st++}else{pts+=2;st=0}}else if(due(r)<now){tot++;od++;st=0}}
 const pct=tot?Math.round(ok/tot*100):null;return{pct,pts,od,st,elig:tot>0&&pct>=S.cfg.umbral&&od==0}}
 function go(t){tab=t;render();scrollTo(0,0)}
 function render(){if(!ronda)ronda=curRound();if(window.FB&&FB.ok&&!user){$('#nav').innerHTML='';$('#app').innerHTML=vLogin();return}
@@ -70,31 +82,26 @@ $('#app').innerHTML=({cobro:vCobro,gente:vGente,rank:vRank,cfg:vCfg})[tab]()}
 function rr(d){ronda=Math.min(Math.max(ronda+d,1),N());render()}
 function vCobro(){
 if(!N())return `<div class="card c"><h2>Aún no hay participantes</h2><p class="m">Agrega a los miembros del pasanaco para empezar a cobrar.</p><button class="b" onclick="go('gente')">Agregar personas</button></div>`;
-ronda=Math.min(Math.max(ronda,1),N());const r=ronda,rec=S.people[r-1],paid=S.people.filter(p=>S.pays[key(r,p.id)]),ok=paid.filter(p=>S.pays[key(r,p.id)].ok).length;
+ronda=Math.min(Math.max(ronda,1),N());const r=ronda,rec=S.people[r-1],paid=S.people.filter(p=>S.pays[key(r,p.id)]),ok=paid.filter(p=>S.pays[key(r,p.id)].ok).length,nx=N()-(isRec(r,rec)?1:0);
 return `<h1>${esc(S.cfg.nombre)}</h1><div class="card hero"><div class="nav2"><button class="i" onclick="rr(-1)">‹</button><div class="c"><b>Ronda ${r} de ${N()}</b><div class="m">Vence ${fd(due(r))}</div></div><button class="i" onclick="rr(1)">›</button></div>
-<div class="pozo"><div><div class="m">Pozo de la ronda</div><div class="big">${bs(S.cfg.monto*N())}</div></div><div class="r"><div class="m">Recibe</div><b>${rec.fijo||rec.sort?(rec.dueno?'👑 ':'')+esc(rec.name):'🎲 Por sortear'}</b></div></div>
-<div class="bar"><i style="width:${Math.min(100,Math.round(gotR(r)/(mon()*N()||1)*100))}%"></i></div><div class="m">${paid.length} de ${N()} completaron · ${ok} a tiempo · recaudado ${bs(gotR(r))} de ${bs(mon()*N())}</div></div>${S.people.map(p=>row(r,p)).join('')}`}
-const mon=()=>+S.cfg.monto||0,key2=(r,id)=>r+'-'+id;
-const abon=(r,id)=>(S.parc&&S.parc[key2(r,id)])||[];
-const sumA=a=>Math.round(a.reduce((t,x)=>t+x.mt,0)*100)/100;
-const paidAmt=(r,id)=>S.pays[key2(r,id)]?mon():sumA(abon(r,id));
-const gotR=r=>S.people.reduce((t,p)=>t+paidAmt(r,p.id),0);
-const totG=()=>{let t=0;for(let k=1;k<=N();k++)t+=gotR(k);return t};
+<div class="pozo"><div><div class="m">Pozo de la ronda</div><div class="big">${bs(exp(r))}</div></div><div class="r"><div class="m">Recibe</div><b>${rec.fijo||rec.sort?(rec.dueno?'👑 ':'')+esc(rec.name):'🎲 Por sortear'}</b></div></div>
+<div class="bar"><i style="width:${Math.min(100,Math.round(gotR(r)/(exp(r)||1)*100))}%"></i></div><div class="m">${paid.length} de ${nx} completaron · ${ok} a tiempo · recaudado ${bs(gotR(r))} de ${bs(exp(r))}</div></div>${S.people.map(p=>row(r,p)).join('')}`}
 function row(r,p){const y=S.pays[key(r,p.id)],d=due(r),A=abon(r,p.id),got=y?mon():sumA(A),pc=Math.min(100,Math.round(got/(mon()||1)*100)),av=`<span class="av" title="Ver gráfico" onclick="ficha('${p.id}')">${esc(p.name[0])}</span>`,
 pb=`<div class="pb"><i class="${y?(y.ok?'':'w'):(A.length?'p':'')}" style="width:${pc}%"></i></div>`;
+if(isRec(r,p))return `<div class="row">${av}<div class="f"><b>${p.dueno?'👑 ':''}${esc(p.name)}</b><div class="m">Hoy recibe ${bs(exp(r))} · no paga cuota en esta ronda</div></div><span class="tg rc2">👑 Recibe</span></div>`;
 if(y)return `<div class="row">${av}<div class="f"><b>${esc(p.name)}</b><div class="m">${y.m=='qr'?'QR':'Efectivo'} · ${fd(y.ts)}${y.ab&&y.ab.length>1?' · '+y.ab.length+' abonos':''}${y.n?' · Ref. '+esc(y.n):''}${!y.ok&&S.cfg.multa?' · multa '+bs(S.cfg.multa):''}</div>${pb}</div>${y.ok?'<span class="tg ok">A tiempo</span>':`<span class="tg wn">Tarde ${dur(y.ts-d.getTime())}</span>`}<button class="i" title="Comprobante" onclick="recibo(${r},'${p.id}')">🧾</button><button class="i" title="Anular pago" onclick="undo(${r},'${p.id}')">↺</button></div>`;
 const late=d<new Date();
 return `<div class="row">${av}<div class="f"><b>${esc(p.name)}</b><div class="m">${A.length?'Pagó '+bs(got)+' · falta '+bs(+(mon()-got).toFixed(2)):bs(mon())}${late&&S.cfg.multa?' + multa '+bs(S.cfg.multa):''}</div>${pb}</div>${late?`<span class="tg bad">Vencido ${dur(Date.now()-d)}</span>`:`<span class="tg">Vence en ${dur(d-Date.now())}</span>`}${A.length?`<button class="i" title="Quitar último abono" onclick="undo(${r},'${p.id}')">↺</button>`:''}${p.tel?`<a class="i" href="${wa(r,p)}" target="_blank" rel="noopener" title="Recordar por WhatsApp">💬</a>`:''}<button class="b s" onclick="openPay(${r},'${p.id}')">${A.length?'Abonar':'Cobrar'}</button></div>`}
 function undo(r,id){const k=key(r,id);if(S.pays[k]){const y=S.pays[k];delete S.pays[k];if(y.ab&&y.ab.length>1){y.ab.pop();S.parc=S.parc||{};S.parc[k]=y.ab}}else if(S.parc&&S.parc[k]){S.parc[k].pop();if(!S.parc[k].length)delete S.parc[k]}save();render()}
 function openPay(r,id){const rest=+(mon()-sumA(abon(r,id))).toFixed(2);M={r,id,m:S.cfg.qr?'qr':'efectivo',t:loc(new Date()),rest,a:rest};mod()}
-function ficha(id){const p=S.people.find(x=>x.id==id),i=S.people.indexOf(p),r=ronda,got=paidAmt(r,id),m=mon(),s=stats(p),R=38,C=2*Math.PI*R,f=Math.min(1,got/(m||1)),bw=Math.min(34,Math.floor(280/Math.max(N(),1))-4);let bars='';
-for(let k=1;k<=N();k++){const g=paidAmt(k,id),h=Math.round(Math.min(1,g/(m||1))*70),y=S.pays[key(k,id)],c=y?(y.ok?'#34d399':'#fbbf24'):g>0?'#60a5fa':due(k)<new Date()?'#fb7185':'#2a3544',x=(k-1)*(bw+4);
+function ficha(id){const p=S.people.find(x=>x.id==id),i=S.people.indexOf(p),r=ronda,ex=isRec(r,p),got=paidAmt(r,id),m=mon(),s=stats(p),R=38,C=2*Math.PI*R,f=ex?1:Math.min(1,got/(m||1)),bw=Math.min(34,Math.floor(280/Math.max(N(),1))-4);let bars='';
+for(let k=1;k<=N();k++){const e=isRec(k,p),g=paidAmt(k,id),h=e?70:Math.round(Math.min(1,g/(m||1))*70),y=S.pays[key(k,id)],c=e?'#a78bfa':y?(y.ok?'#34d399':'#fbbf24'):g>0?'#60a5fa':due(k)<new Date()?'#fb7185':'#2a3544',x=(k-1)*(bw+4);
 bars+=`<rect x="${x}" y="${80-h}" width="${bw}" height="${Math.max(h,3)}" rx="3" fill="${c}"/><text x="${x+bw/2}" y="94" font-size="9" text-anchor="middle" fill="#8593a6">${k}</text>`}
 const L=(S.pays[key(r,id)]||{}).ab||abon(r,id);
 $('#modal').innerHTML=`<div class="ov" onclick="if(event.target==this)closeM()"><div class="sh"><h2>${esc(p.name)}</h2><div class="m">${recv(i,p)}</div>
-<div style="display:flex;align-items:center;gap:14px;margin:12px 0"><svg width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#2a3544" stroke-width="12"/><circle cx="50" cy="50" r="${R}" fill="none" stroke="#34d399" stroke-width="12" stroke-linecap="round" stroke-dasharray="${f*C} ${C}" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="18" font-weight="700" fill="#eaf0f7">${Math.round(f*100)}%</text></svg>
-<div><div class="m">Cuota de la ronda ${r}</div><b>${bs(got)} de ${bs(m)}</b><div class="m">${got>=m?'Cuota completa':'Falta '+bs(+(m-got).toFixed(2))}</div><div class="m">Puntualidad: ${s.pct==null?'—':s.pct+'%'} · ${s.pts} pts</div></div></div>
-<div class="m">Pago por ronda: verde a tiempo · amarillo tarde · azul parcial · rojo vencida</div><div style="overflow-x:auto"><svg width="${N()*(bw+4)}" height="100">${bars}</svg></div>
+<div style="display:flex;align-items:center;gap:14px;margin:12px 0"><svg width="96" height="96" viewBox="0 0 100 100"><circle cx="50" cy="50" r="${R}" fill="none" stroke="#2a3544" stroke-width="12"/><circle cx="50" cy="50" r="${R}" fill="none" stroke="${ex?'#a78bfa':'#34d399'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${f*C} ${C}" transform="rotate(-90 50 50)"/><text x="50" y="55" text-anchor="middle" font-size="18" font-weight="700" fill="#eaf0f7">${ex?'👑':Math.round(f*100)+'%'}</text></svg>
+<div><div class="m">Cuota de la ronda ${r}</div><b>${ex?'Recibe el pozo, no paga':bs(got)+' de '+bs(m)}</b><div class="m">${ex?'':got>=m?'Cuota completa':'Falta '+bs(+(m-got).toFixed(2))}</div><div class="m">Puntualidad: ${s.pct==null?'—':s.pct+'%'} · ${s.pts} pts</div></div></div>
+<div class="m">Por ronda: verde a tiempo · amarillo tarde · azul parcial · rojo vencida · morado recibe</div><div style="overflow-x:auto"><svg width="${N()*(bw+4)}" height="100">${bars}</svg></div>
 ${L.length?'<div class="m" style="margin-top:8px">Abonos de esta ronda</div>'+L.map(x=>`<div class="m">• ${bs(x.mt)} · ${x.m=='qr'?'QR':'Efectivo'} · ${fd(x.ts)}${x.n?' · '+esc(x.n):''}</div>`).join(''):''}
 <button class="b g" onclick="closeM()">Cerrar</button></div></div>`}
 function mod(){const p=S.people.find(x=>x.id==M.id);$('#modal').innerHTML=`<div class="ov" onclick="if(event.target==this)closeM()"><div class="sh"><h2>Cobrar a ${esc(p.name)}</h2><div class="big">${bs(M.rest)}</div><div class="m">Cuota ${bs(S.cfg.monto)}${M.rest<mon()?' · ya pagó '+bs(+(mon()-M.rest).toFixed(2)):''}</div>
@@ -114,23 +121,23 @@ function recibo(r,id){const p=S.people.find(x=>x.id==id),y=S.pays[key(r,id)];if(
 txt=`🧾 Comprobante — ${S.cfg.nombre}\nParticipante: ${p.name}\nRonda: ${r} de ${N()}\nMonto: ${bs(S.cfg.monto)}${y.ab&&y.ab.length>1?'\nAbonos: '+y.ab.map(x=>bs(x.mt)+' ('+fd(x.ts)+')').join(', '):''}${mu?'\nMulta por mora: '+bs(mu):''}\nMétodo: ${y.m=='qr'?'QR':'Efectivo'}${y.n?'\nRef.: '+y.n:''}\nPagado: ${fd(y.ts)}\nEstado: ${y.ok?'✅ A tiempo (+10 pts)':'⏰ Fuera de hora (+2 pts)'}\nPuntualidad: ${s.pct}% · ${s.pts} pts`;
 let t=(p.tel||'').replace(/\D/g,'');if(t.length==8)t='591'+t;
 $('#modal').innerHTML=`<div class="ov" onclick="if(event.target==this)closeM()"><div class="sh"><h2>Pago registrado ✅</h2><pre class="rc">${esc(txt)}</pre><a class="b" target="_blank" rel="noopener" href="https://wa.me/${t}?text=${encodeURIComponent(txt)}">Enviar comprobante por WhatsApp</a><button class="b g" onclick="closeM()">Cerrar</button></div></div>`}
-function graf(){const m=mon()*N(),cur=curRound(),bw=Math.min(34,Math.floor(300/N())-4);let b='';
-for(let k=1;k<=N();k++){const g=gotR(k),h=Math.round(Math.min(1,g/(m||1))*80),x=(k-1)*(bw+4);
+function graf(){const cur=curRound(),bw=Math.min(34,Math.floor(300/N())-4);let b='';
+for(let k=1;k<=N();k++){const g=gotR(k),h=Math.round(Math.min(1,g/(exp(k)||1))*80),x=(k-1)*(bw+4);
 b+=`<rect x="${x}" y="0" width="${bw}" height="80" rx="3" fill="#222c3a"/><rect x="${x}" y="${80-h}" width="${bw}" height="${g?Math.max(h,3):0}" rx="3" fill="${k==cur?'#22d3ee':'#34d399'}"/><text x="${x+bw/2}" y="94" font-size="9" text-anchor="middle" fill="#8593a6">${k}</text>`}
-const tg=totG();
-return `<h2 style="margin-top:14px">Avance general</h2><div class="card"><div class="pozo"><div><div class="m">Recaudado en total</div><div class="big">${bs(tg)}</div></div><div class="r"><div class="m">Meta total</div><b>${bs(m*N())}</b></div></div><div class="bar"><i style="width:${Math.min(100,Math.round(tg/((m*N())||1)*100))}%"></i></div><div class="m">Cada barra es una ronda: lo recaudado frente a lo esperado (${bs(m)}). La ronda actual va en celeste.</div><div style="overflow-x:auto;margin-top:8px"><svg width="${N()*(bw+4)}" height="100">${b}</svg></div></div>`}
+const tg=totG(),meta=totE();
+return `<h2 style="margin-top:14px">Avance general</h2><div class="card"><div class="pozo"><div><div class="m">Recaudado en total</div><div class="big">${bs(tg)}</div></div><div class="r"><div class="m">Meta total</div><b>${bs(meta)}</b></div></div><div class="bar"><i style="width:${Math.min(100,Math.round(tg/(meta||1)*100))}%"></i></div><div class="m">Cada barra es una ronda: lo recaudado frente a lo esperado (sin la cuota de quien recibe). La ronda actual va en celeste.</div><div style="overflow-x:auto;margin-top:8px"><svg width="${N()*(bw+4)}" height="100">${b}</svg></div></div>`}
 function matriz(){const now=Date.now(),v=Object.values(S.pays),tarde=v.filter(y=>!y.ok).length,mu=S.cfg.multa||0;let h='<h2 style="margin-top:14px">Matriz de pagos</h2><div class="card" style="overflow-x:auto;padding:8px"><table class="mx"><tr><th></th>';
 for(let r=1;r<=N();r++)h+=`<th title="${fd(due(r))}">${r}</th>`;h+='</tr>';
-S.people.forEach(p=>{h+=`<tr><td class="nm">${esc(p.name.split(' ')[0])}</td>`;for(let r=1;r<=N();r++){const y=S.pays[key(r,p.id)];h+=`<td>${y?(y.ok?'✅':'⏰'):abon(r,p.id).length?'🟡':due(r)<now?'❌':'·'}</td>`}h+='</tr>'});
-return h+`</table></div><p class="m">✅ a tiempo · ⏰ tarde · 🟡 abono parcial · ❌ vencida sin pagar · · en plazo</p><div class="card"><b>Recaudado total: ${bs(totG()+tarde*mu)}</b><div class="m">${v.length} cuotas pagadas · ${tarde} tarde${mu?' · multas '+bs(tarde*mu):''}</div></div>`}
+S.people.forEach(p=>{h+=`<tr><td class="nm">${esc(p.name.split(' ')[0])}</td>`;for(let r=1;r<=N();r++){const y=S.pays[key(r,p.id)];h+=`<td>${isRec(r,p)?'👑':y?(y.ok?'✅':'⏰'):abon(r,p.id).length?'🟡':due(r)<now?'❌':'·'}</td>`}h+='</tr>'});
+return h+`</table></div><p class="m">👑 recibe (no paga) · ✅ a tiempo · ⏰ tarde · 🟡 abono parcial · ❌ vencida sin pagar · · en plazo</p><div class="card"><b>Recaudado total: ${bs(totG()+tarde*mu)}</b><div class="m">${v.length} cuotas pagadas · ${tarde} tarde${mu?' · multas '+bs(tarde*mu):''}</div></div>`}
 function bk(){const t=$('#bkt');t.value=JSON.stringify({...S,cfg:{...S.cfg,qr:''}});t.select();try{document.execCommand('copy');toast('Respaldo copiado')}catch(e){}}
-function rs(){try{const d=JSON.parse($('#bkt').value);if(!d.cfg||!d.people||!d.pays)throw 0;d.cfg.qr=d.cfg.qr||S.cfg.qr;S=d;save();ronda=0;go('cobro');toast('Restaurado')}catch(e){toast('Respaldo no válido')}}
+function rs(){try{const d=JSON.parse($('#bkt').value);if(!d.cfg||!d.people||!d.pays)throw 0;d.cfg.qr=d.cfg.qr||S.cfg.qr;S=d;norm();save();ronda=0;go('cobro');toast('Restaurado')}catch(e){toast('Respaldo no válido')}}
 const dd=t=>new Date(t).toLocaleDateString('es-BO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
 const recv=(i,p)=>p.fijo||p.sort?'Recibe el '+dd(due(i+1))+' (ronda '+(i+1)+')':'Fecha por sortear';
-function norm(){S.people.forEach(p=>{if(p.sort===undefined&&p.fijo===undefined){p.sort=true;p.fijo=false}})}
+function norm(){if(S.cfg.dia===undefined)S.cfg.dia=-1;S.people.forEach(p=>{if(p.sort===undefined&&p.fijo===undefined){p.sort=true;p.fijo=false}})}
 function vGente(){const np=S.people.filter(p=>!p.fijo).length;return `<h1>Personas</h1><div class="card"><input id="pn" placeholder="Nombre completo"><input id="pt" type="tel" placeholder="Celular (opcional, para recordar por WhatsApp)"><label class="m">¿Cómo recibe?</label><select id="pm"><option value="s">🎲 Entra al sorteo</option><option value="f">🔒 Ya tiene su lugar (fijo)</option><option value="d">👑 Dueño del pasanaco (recibe primero)</option></select><input id="pk" type="number" min="1" placeholder="N.º de turno (solo si es lugar fijo)"><button class="b" onclick="addP()">Agregar al pasanaco</button>${N()?'':'<button class="b g" onclick="demo()">Cargar ejemplo</button>'}</div>
 ${S.people.map((p,i)=>`<div class="row"><span class="n">${i+1}</span><div class="f"><b>${p.dueno?'👑 ':''}${esc(p.name)}</b><div class="m">${p.fijo?'🔒 Lugar fijo':p.sort?'🎲 Sorteado':'🎲 Entra al sorteo'} · ${recv(i,p)}</div>${p.tel?`<div class="m">${esc(p.tel)}</div>`:''}</div><button class="i" title="Cambiar: lugar fijo / entra al sorteo" onclick="tgF('${p.id}')">${p.fijo?'🔒':'🎲'}</button><button class="i" onclick="mv(${i},-1)">↑</button><button class="i" onclick="mv(${i},1)">↓</button><button class="i" onclick="delP('${p.id}',this)">✕</button></div>`).join('')}
-${np?`<button class="b g" onclick="shuf()">🎲 Sortear turnos (${np} participan)</button>`:''}<p class="m">🔒 ya tiene su lugar y no entra al sorteo · 🎲 entra al sorteo. La fecha es el día límite de la ronda en que recibe el pozo.</p>`}
+${np?`<button class="b g" onclick="shuf()">🎲 Sortear turnos (${np} participan)</button>`:''}<p class="m">🔒 ya tiene su lugar y no entra al sorteo · 🎲 entra al sorteo. La fecha es el día límite de la ronda en que recibe el pozo; ese día no paga cuota.</p>`}
 const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function addP(){const n=$('#pn').value.trim();if(!n)return toast('Escribe el nombre');const m=$('#pm').value,k=parseInt($('#pk').value),p={id:nid(),name:n,tel:$('#pt').value.trim(),fijo:m!='s',sort:m!='s'};
 if(m=='d'){p.dueno=true;S.people.unshift(p)}else if(m=='f'&&k>0)S.people.splice(Math.min(k,N()+1)-1,0,p);else S.people.push(p);save();render()}
@@ -142,17 +149,19 @@ idx.forEach((k,n)=>{S.people[k]=pool[n];pool[n].sort=true});save();render();toas
 function delP(id,b){if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro?';b.style.width='auto';b.style.padding='0 8px';return}S.people=S.people.filter(p=>p.id!=id);[S.pays,S.parc||{}].forEach(o=>Object.keys(o).forEach(k=>{if(k.split('-')[1]==id)delete o[k]}));save();render()}
 function demo(){['Ana Rojas','Luis Mamani','María Justiniano','Carlos Vaca','Rosa Pinto','Juan Salvatierra'].forEach((n,i)=>S.people.push({id:nid(),name:n,tel:'',fijo:!i,sort:!i,dueno:!i}));save();render()}
 function vRank(){let pr=0;const L=S.people.map(p=>({p,...stats(p)})).sort((a,b)=>(b.pct??-1)-(a.pct??-1)||b.pts-a.pts);
-return `<h1>Ranking de puntualidad</h1><div class="card m">A tiempo = +10 pts · Tarde = +2 pts. Sube al siguiente pasanaco con prioridad quien tenga ${S.cfg.umbral}% o más de puntualidad y ninguna cuota vencida.</div>
+return `<h1>Ranking de puntualidad</h1><div class="card m">A tiempo = +10 pts · Tarde = +2 pts. La ronda en que recibes no cuenta. Sube al siguiente pasanaco con prioridad quien tenga ${S.cfg.umbral}% o más de puntualidad y ninguna cuota vencida.</div>
 ${L.length?L.map((x,i)=>`<div class="row"><span class="n">${['🥇','🥈','🥉'][i]||i+1}</span><div class="f"><b>${esc(x.p.name)}</b><div class="m">${x.pct==null?'Sin cuotas todavía':x.pct+'% puntual · '+x.pts+' pts'+(x.od?' · '+x.od+' vencida(s)':'')+(x.st>1?' · 🔥 '+x.st+' seguidas':'')}</div></div>${x.elig?`<span class="tg ok">⭐ Sube #${++pr}</span>`:'<span class="tg">En proceso</span>'}</div>`).join(''):'<p class="m">Agrega personas para ver el ranking.</p>'}${N()?graf()+matriz():''}`}
-function vCfg(){const c=S.cfg;return `<h1>Ajustes</h1><div class="card"><label class="m">Nombre del pasanaco</label><input value="${esc(c.nombre)}" onchange="cf('nombre',this.value)">
+function vCfg(){const c=S.cfg,D=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];return `<h1>Ajustes</h1><div class="card"><label class="m">Nombre del pasanaco</label><input value="${esc(c.nombre)}" onchange="cf('nombre',this.value)">
 <label class="m">Monto de la cuota (Bs.)</label><input type="number" min="1" value="${c.monto}" onchange="cf('monto',+this.value)">
-<label class="m">Frecuencia</label><select onchange="cf('freq',+this.value)">${[[7,'Semanal'],[15,'Quincenal'],[30,'Mensual (30 días)']].map(([v,l])=>`<option value="${v}" ${c.freq==v?'selected':''}>${l}</option>`).join('')}</select>
-<label class="m">Fecha de la primera ronda</label><input type="date" value="${c.inicio}" onchange="cf('inicio',this.value)">
+<label class="m">Frecuencia de pago</label><select onchange="cf('freq',+this.value)">${[[7,'Cada semana (7 días)'],[14,'Cada 2 semanas (14 días)'],[15,'Quincenal (15 días)'],[28,'Cada 4 semanas (28 días)'],[30,'Mensual (30 días)']].map(([v,l])=>`<option value="${v}" ${c.freq==v?'selected':''}>${l}</option>`).join('')}</select>
+<label class="m">Día de pago</label><select onchange="cf('dia',+this.value)"><option value="-1" ${c.dia<0?'selected':''}>Según la fecha de inicio</option>${[1,2,3,4,5,6,0].map(v=>`<option value="${v}" ${c.dia===v?'selected':''}>${v==5||v==6?'Cada ':'Cada '}${D[v].toLowerCase()}</option>`).join('')}</select>
+<p class="m">Ej.: "Cada 2 semanas" + "Cada sábado" = paga un sábado sí y otro no. La ronda 1 cae en el primer día elegido desde la fecha de inicio (${fd(due(1)).split(',')[0]}).</p>
+<label class="m">Fecha de inicio</label><input type="date" value="${c.inicio}" onchange="cf('inicio',this.value)">
 <label class="m">Hora límite de pago</label><input type="time" value="${c.hora}" onchange="cf('hora',this.value)">
 <label class="m">Puntualidad mínima para subir (%)</label><input type="number" min="1" max="100" value="${c.umbral}" onchange="cf('umbral',+this.value)"><label class="m">Multa por pago tarde (Bs., 0 = sin multa)</label><input type="number" min="0" value="${c.multa||0}" onchange="cf('multa',+this.value)"></div>
 <div class="card"><h2>Mi QR de cobro</h2><p class="m">Sube la imagen del QR de tu banco para mostrarla al cobrar.</p>${c.qr?`<img class="qr" src="${c.qr}" alt="QR"><button class="b g" onclick="S.cfg.qr='';save();render()">Quitar QR</button>`:''}<input type="file" accept="image/*" onchange="upQR(this)"></div>
-${cloud?'<button class="b g" onclick="FB.logout()">Cerrar sesión</button>':''}<div class="card"><h2>Respaldo</h2><p class="m">Copia tus datos para guardarlos o pasarlos a otro dispositivo.</p><button class="b g" onclick="bk()">Generar respaldo</button><textarea id="bkt" rows="3" placeholder="Aquí aparece el respaldo. Para restaurar, pega uno y toca Restaurar."></textarea><button class="b g" onclick="rs()">Restaurar</button></div><button class="b g" onclick="rst(this)">Borrar todos los datos</button><p class="m">${cloud?'☁️ Sincronizado en la nube':'Modo local: los datos se guardan solo en este dispositivo.'}</p>`}
-function cf(k,v){S.cfg[k]=v;save();ronda=0;toast('Guardado')}
+${cloud?'<button class="b g" onclick="FB.logout()">Cerrar sesión</button>':''}<div class="card"><h2>Respaldo</h2><p class="m">Copia tus datos para guardarlos o pasarlos a otro dispositivo.</p><button class="b g" onclick="bk()">Generar respaldo</button><textarea id="bkt" rows="3" placeholder="Aquí aparece el respaldo. Para restaurar, pega uno y toca Restaurar."></textarea><button class="b g" onclick="rs()">Restaurar</button></div><button class="b g" onclick="rst(this)">Borrar todos los datos</button><p class="m">${cloud?'☁️ Sincronizado en la nube (no se guarda nada en este dispositivo)':'⚠️ Sin nube: configura Firebase para guardar los datos.'}</p>`}
+function cf(k,v){S.cfg[k]=v;save();ronda=0;render();toast('Guardado')}
 function upQR(inp){const f=inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);S.cfg.qr=c.toDataURL('image/jpeg',.88);save();render()};im.src=fr.result};fr.readAsDataURL(f)}
 function rst(b){if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro? Toca otra vez para borrar todo';return}S.people=[];S.pays={};S.parc={};S.cfg.qr='';save();ronda=0;go('cobro')}
 let user=null,cloud=false,unsub=null;
@@ -162,25 +171,23 @@ function start(){if(window.started)return;window.started=1;if(!window.FB||!FB.ok
 FB.watch(u=>{user=u;if(unsub){unsub();unsub=null}
 if(u)unsub=FB.sub((d,pend,err)=>{if(err){toast('Sin permisos o sin conexión');return}
 if(d==null){FB.push(JSON.stringify(S));return}if(pend)return;
-try{S=JSON.parse(d);localStorage.setItem(K,d)}catch(e){}norm();
+try{S=JSON.parse(d)}catch(e){}norm();
 const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!$('#modal').innerHTML)render()});
 render()})}
 if(window.FB)start();else{addEventListener('fbready',start);$('#app').innerHTML='<p class="m c" style="margin-top:40px">Cargando…</p>';setTimeout(()=>{if(!window.FB)start()},7000)}
 </script>
-<!-- ============ FIREBASE: pega aquí los datos de tu proyecto ============ -->
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import {getFirestore,doc,setDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 const firebaseConfig={
-  apiKey:"PEGA_AQUI_TU_API_KEY",
-  authDomain:"TU-PROYECTO.firebaseapp.com",
-  projectId:"TU-PROYECTO",
-  storageBucket:"TU-PROYECTO.firebasestorage.app",
-  messagingSenderId:"000000000000",
-  appId:"1:000000000000:web:xxxxxxxx"
+  apiKey:"AIzaSyAOLUj-yij8lrjr8LHLl64AXYx67swe0uY",
+  authDomain:"pasanacoqr.firebaseapp.com",
+  projectId:"pasanacoqr",
+  storageBucket:"pasanacoqr.firebasestorage.app",
+  messagingSenderId:"608210812282",
+  appId:"1:608210812282:web:7b23e810d719a3b2732ac3"
 };
-// ======================================================================
 const ok=!firebaseConfig.apiKey.startsWith("PEGA");
 window.FB={ok};
 if(ok){const app=initializeApp(firebaseConfig),au=getAuth(app),ref=doc(getFirestore(app),"pasanaco","datos");
