@@ -54,7 +54,12 @@ let S={cfg:{nombre:'Mi Pasanaco',monto:100,freq:7,dia:-1,inicio:today(),hora:'20
 norm();
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2200)}
 /* Solo nube: ya no se guarda nada en el dispositivo */
-function save(){if(cloud&&FB.push)FB.push(JSON.stringify(S)).catch(()=>toast('Sin conexión, se guardará al volver'));else toast('Firebase no está configurado')}
+function save(){if(role!='admin')return;if(cloud&&FB.push){const{cl,del}=pub();FB.push(JSON.stringify(S),cl,del).catch(()=>toast('Sin conexión, se guardará al volver'))}else toast('Firebase no está configurado')}
+/* Copia reducida para cada cliente: sin celulares, correos ni notas de otros */
+function pub(){const cl={},ems=[];S.people.forEach(p=>{const m=(p.email||'').trim().toLowerCase();if(!m)return;ems.push(m);const py={},pc={};
+Object.keys(S.pays).forEach(k=>{const y=S.pays[k];py[k]=k.split('-')[1]==p.id?y:{ts:y.ts,ok:y.ok}});Object.keys(S.parc||{}).forEach(k=>{if(k.split('-')[1]==p.id)pc[k]=S.parc[k]});
+cl[m]=JSON.stringify({yo:p.id,cfg:S.cfg,people:S.people.map(q=>({id:q.id,name:q.name,fijo:q.fijo,sort:q.sort,dueno:q.dueno})),pays:py,parc:pc})});
+const del=(S.pubMails||[]).filter(m=>!ems.includes(m));S.pubMails=ems;return{cl,del}}
 const N=()=>S.people.length,key=(r,id)=>r+'-'+id;
 /* Fecha límite de la ronda r. Si hay día fijo (viernes, sábado...), la 1.ª ronda cae en ese día y las demás cada "freq" días */
 const due=r=>{const[y,m,d]=S.cfg.inicio.split('-').map(Number),[h,mi]=S.cfg.hora.split(':').map(Number);const b=new Date(y,m-1,d),w=S.cfg.dia;if(w>=0)b.setDate(b.getDate()+(w-b.getDay()+7)%7);return new Date(b.getFullYear(),b.getMonth(),b.getDate()+(r-1)*S.cfg.freq,h,mi)};
@@ -77,8 +82,8 @@ function stats(p){let ok=0,tot=0,pts=0,od=0,st=0;const now=Date.now();for(let r=
 const pct=tot?Math.round(ok/tot*100):null;return{pct,pts,od,st,elig:tot>0&&pct>=S.cfg.umbral&&od==0}}
 function go(t){tab=t;render();scrollTo(0,0)}
 function render(){if(!ronda)ronda=curRound();if(window.FB&&FB.ok&&!user){$('#nav').innerHTML='';$('#app').innerHTML=vLogin();return}
-$('#nav').innerHTML=[['cobro','💰','Cobros'],['gente','👥','Personas'],['rank','🏆','Ranking'],['cfg','⚙️','Ajustes']].map(([k,i,l])=>`<button class="${tab==k?'on':''}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join('');
-$('#app').innerHTML=({cobro:vCobro,gente:vGente,rank:vRank,cfg:vCfg})[tab]()}
+if(role=='cliente'&&tab!='rank')tab='mi';$('#nav').innerHTML=(role=='cliente'?[['mi','🙋','Mi cuenta'],['rank','🏆','Ranking']]:[['cobro','💰','Cobros'],['gente','👥','Personas'],['rank','🏆','Ranking'],['cfg','⚙️','Ajustes']]).map(([k,i,l])=>`<button class="${tab==k?'on':''}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join('');
+$('#app').innerHTML=({cobro:vCobro,gente:vGente,rank:vRank,cfg:vCfg,mi:vMi})[tab]()}
 function rr(d){ronda=Math.min(Math.max(ronda+d,1),N());render()}
 function vCobro(){
 if(!N())return `<div class="card c"><h2>Aún no hay participantes</h2><p class="m">Agrega a los miembros del pasanaco para empezar a cobrar.</p><button class="b" onclick="go('gente')">Agregar personas</button></div>`;
@@ -135,11 +140,11 @@ function rs(){try{const d=JSON.parse($('#bkt').value);if(!d.cfg||!d.people||!d.p
 const dd=t=>new Date(t).toLocaleDateString('es-BO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
 const recv=(i,p)=>p.fijo||p.sort?'Recibe el '+dd(due(i+1))+' (ronda '+(i+1)+')':'Fecha por sortear';
 function norm(){if(S.cfg.dia===undefined)S.cfg.dia=-1;S.people.forEach(p=>{if(p.sort===undefined&&p.fijo===undefined){p.sort=true;p.fijo=false}})}
-function vGente(){const np=S.people.filter(p=>!p.fijo).length;return `<h1>Personas</h1><div class="card"><input id="pn" placeholder="Nombre completo"><input id="pt" type="tel" placeholder="Celular (opcional, para recordar por WhatsApp)"><label class="m">¿Cómo recibe?</label><select id="pm"><option value="s">🎲 Entra al sorteo</option><option value="f">🔒 Ya tiene su lugar (fijo)</option><option value="d">👑 Dueño del pasanaco (recibe primero)</option></select><input id="pk" type="number" min="1" placeholder="N.º de turno (solo si es lugar fijo)"><button class="b" onclick="addP()">Agregar al pasanaco</button>${N()?'':'<button class="b g" onclick="demo()">Cargar ejemplo</button>'}</div>
-${S.people.map((p,i)=>`<div class="row"><span class="n">${i+1}</span><div class="f"><b>${p.dueno?'👑 ':''}${esc(p.name)}</b><div class="m">${p.fijo?'🔒 Lugar fijo':p.sort?'🎲 Sorteado':'🎲 Entra al sorteo'} · ${recv(i,p)}</div>${p.tel?`<div class="m">${esc(p.tel)}</div>`:''}</div><button class="i" title="Cambiar: lugar fijo / entra al sorteo" onclick="tgF('${p.id}')">${p.fijo?'🔒':'🎲'}</button><button class="i" onclick="mv(${i},-1)">↑</button><button class="i" onclick="mv(${i},1)">↓</button><button class="i" onclick="delP('${p.id}',this)">✕</button></div>`).join('')}
+function vGente(){const np=S.people.filter(p=>!p.fijo).length;return `<h1>Personas</h1><div class="card"><input id="pn" placeholder="Nombre completo"><input id="pt" type="tel" placeholder="Celular (opcional, para recordar por WhatsApp)"><input id="pe" type="email" placeholder="Correo del cliente (opcional, para que vea su cuenta)"><label class="m">¿Cómo recibe?</label><select id="pm"><option value="s">🎲 Entra al sorteo</option><option value="f">🔒 Ya tiene su lugar (fijo)</option><option value="d">👑 Dueño del pasanaco (recibe primero)</option></select><input id="pk" type="number" min="1" placeholder="N.º de turno (solo si es lugar fijo)"><button class="b" onclick="addP()">Agregar al pasanaco</button>${N()?'':'<button class="b g" onclick="demo()">Cargar ejemplo</button>'}</div>
+${S.people.map((p,i)=>`<div class="row"><span class="n">${i+1}</span><div class="f"><b>${p.dueno?'👑 ':''}${esc(p.name)}</b><div class="m">${p.fijo?'🔒 Lugar fijo':p.sort?'🎲 Sorteado':'🎲 Entra al sorteo'} · ${recv(i,p)}</div>${p.tel?`<div class="m">${esc(p.tel)}</div>`:''}${p.email?`<div class="m">✉️ ${esc(p.email)}</div>`:''}</div><button class="i" title="Poner o cambiar correo" onclick="edE('${p.id}')">✉️</button><button class="i" title="Crear acceso" onclick="mkAcc('${p.id}')">🔑</button><button class="i" title="Cambiar: lugar fijo / entra al sorteo" onclick="tgF('${p.id}')">${p.fijo?'🔒':'🎲'}</button><button class="i" onclick="mv(${i},-1)">↑</button><button class="i" onclick="mv(${i},1)">↓</button><button class="i" onclick="delP('${p.id}',this)">✕</button></div>`).join('')}
 ${np?`<button class="b g" onclick="shuf()">🎲 Sortear turnos (${np} participan)</button>`:''}<p class="m">🔒 ya tiene su lugar y no entra al sorteo · 🎲 entra al sorteo. La fecha es el día límite de la ronda en que recibe el pozo; ese día no paga cuota.</p>`}
 const nid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-function addP(){const n=$('#pn').value.trim();if(!n)return toast('Escribe el nombre');const m=$('#pm').value,k=parseInt($('#pk').value),p={id:nid(),name:n,tel:$('#pt').value.trim(),fijo:m!='s',sort:m!='s'};
+function addP(){const n=$('#pn').value.trim();if(!n)return toast('Escribe el nombre');const m=$('#pm').value,k=parseInt($('#pk').value),p={id:nid(),name:n,tel:$('#pt').value.trim(),email:$('#pe').value.trim().toLowerCase(),fijo:m!='s',sort:m!='s'};
 if(m=='d'){p.dueno=true;S.people.unshift(p)}else if(m=='f'&&k>0)S.people.splice(Math.min(k,N()+1)-1,0,p);else S.people.push(p);save();render()}
 function mv(i,d){const j=i+d;if(j<0||j>=N())return;const a=S.people[i],b=S.people[j];if(!a.fijo&&b.fijo)return toast('Ese lugar es fijo, no se puede mover');[S.people[i],S.people[j]]=[b,a];if(!a.fijo)a.sort=true;save();render()}
 function tgF(id){const p=S.people.find(x=>x.id==id);p.fijo=!p.fijo;p.sort=p.fijo;if(!p.fijo)delete p.dueno;save();render()}
@@ -160,16 +165,41 @@ function vCfg(){const c=S.cfg,D=['Domingo','Lunes','Martes','Miércoles','Jueves
 <label class="m">Hora límite de pago</label><input type="time" value="${c.hora}" onchange="cf('hora',this.value)">
 <label class="m">Puntualidad mínima para subir (%)</label><input type="number" min="1" max="100" value="${c.umbral}" onchange="cf('umbral',+this.value)"><label class="m">Multa por pago tarde (Bs., 0 = sin multa)</label><input type="number" min="0" value="${c.multa||0}" onchange="cf('multa',+this.value)"></div>
 <div class="card"><h2>Mi QR de cobro</h2><p class="m">Sube la imagen del QR de tu banco para mostrarla al cobrar.</p>${c.qr?`<img class="qr" src="${c.qr}" alt="QR"><button class="b g" onclick="S.cfg.qr='';save();render()">Quitar QR</button>`:''}<input type="file" accept="image/*" onchange="upQR(this)"></div>
-${cloud?'<button class="b g" onclick="FB.logout()">Cerrar sesión</button>':''}<div class="card"><h2>Respaldo</h2><p class="m">Copia tus datos para guardarlos o pasarlos a otro dispositivo.</p><button class="b g" onclick="bk()">Generar respaldo</button><textarea id="bkt" rows="3" placeholder="Aquí aparece el respaldo. Para restaurar, pega uno y toca Restaurar."></textarea><button class="b g" onclick="rs()">Restaurar</button></div><button class="b g" onclick="rst(this)">Borrar todos los datos</button><p class="m">${cloud?'☁️ Sincronizado en la nube (no se guarda nada en este dispositivo)':'⚠️ Sin nube: configura Firebase para guardar los datos.'}</p>`}
+${cloud?'<button class="b g" onclick="FB.logout()">Cerrar sesión</button>':''}<div class="card"><h2>Respaldo</h2><p class="m">Copia tus datos para guardarlos o pasarlos a otro dispositivo.</p><button class="b g" onclick="bk()">Generar respaldo</button><textarea id="bkt" rows="3" placeholder="Aquí aparece el respaldo. Para restaurar, pega uno y toca Restaurar."></textarea><button class="b g" onclick="rs()">Restaurar</button></div>${supV()}${histV()}<button class="b g" onclick="cerrar(this)">🏁 Cerrar este pasanaco y empezar otro</button><button class="b g" onclick="rst(this)">Borrar todos los datos</button><p class="m">${cloud?'☁️ Sincronizado en la nube (no se guarda nada en este dispositivo)':'⚠️ Sin nube: configura Firebase para guardar los datos.'}</p>`}
 function cf(k,v){S.cfg[k]=v;save();ronda=0;render();toast('Guardado')}
 function upQR(inp){const f=inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);S.cfg.qr=c.toDataURL('image/jpeg',.88);save();render()};im.src=fr.result};fr.readAsDataURL(f)}
 function rst(b){if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro? Toca otra vez para borrar todo';return}S.people=[];S.pays={};S.parc={};S.cfg.qr='';save();ronda=0;go('cobro')}
-let user=null,cloud=false,unsub=null;
+let user=null,cloud=false,unsub=null,role='admin',noData=false,sup=false,DU=[];
+function cerrar(b){if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro? Toca otra vez para archivar y empezar otro';return}
+const keep=confirm('Este pasanaco se guardará en el historial.\n\nAceptar = seguir con los mismos participantes (los más puntuales pasan primero).\nCancelar = empezar sin participantes.');
+const L=S.people.map(p=>({p,...stats(p)})).sort((a,b)=>(b.pct??-1)-(a.pct??-1)||b.pts-a.pts);
+S.hist=S.hist||[];S.hist.unshift({id:nid(),nombre:S.cfg.nombre,ini:S.cfg.inicio,fin:Date.now(),monto:mon(),n:N(),total:totG(),filas:L.map(x=>({name:x.p.name,pct:x.pct,pts:x.pts,od:x.od,elig:x.elig})),cfg:{...S.cfg,qr:''},people:JSON.parse(JSON.stringify(S.people)),pays:S.pays,parc:S.parc||{}});
+if(keep){const o=S.people.filter(p=>p.dueno),r=L.filter(x=>!x.p.dueno).map(x=>x.p);S.people=[...o,...r];S.people.forEach(p=>{if(!p.dueno){p.fijo=false;p.sort=false}})}else S.people=[];
+S.pays={};S.parc={};S.cfg.inicio=today();ronda=0;save();go('cfg');toast('Pasanaco archivado. Ya puedes empezar otro')}
+function supV(){if(!sup)return '';return `<div class="card"><h2>Dueños de pasanaco</h2><p class="m">Cada dueño tiene sus propios datos y clientes, separados de los tuyos.</p>${DU.map(d=>`<div class="row"><div class="f"><b>${esc(d.nombre||d.email)}</b><div class="m">${esc(d.email)}</div></div><button class="i" onclick="delD('${d.id}',this)">✕</button></div>`).join('')}<input id="dn" placeholder="Nombre del dueño"><input id="de" type="email" placeholder="Correo del dueño"><input id="dp" placeholder="Contraseña temporal (mín. 6)"><button class="b" onclick="addD()">Crear dueño</button></div>`}
+async function addD(){const n=$('#dn').value.trim(),e=$('#de').value.trim().toLowerCase(),p=$('#dp').value;if(!e||p.length<6)return toast('Pon correo y contraseña (mín. 6)');try{await FB.mkD(e,p,n);DU=await FB.listD();prompt('Dueño creado. Envíale estos datos:',location.href.split('#')[0]+'\nCorreo: '+e+'\nContraseña: '+p);render()}catch(x){toast(x.code=='auth/email-already-in-use'?'Ese correo ya existe':'No se pudo crear ('+(x.code||'error')+')')}}
+async function delD(id,b){if(!b.dataset.s){b.dataset.s=1;b.textContent='¿Seguro?';b.style.width='auto';b.style.padding='0 8px';return}try{await FB.delD(id);DU=await FB.listD();render()}catch(e){toast('No se pudo quitar')}}
+function histV(){const H=S.hist||[];return H.length?`<div class="card"><h2>Historial de pasanacos</h2>${H.map(h=>`<div class="row"><div class="f"><b>${esc(h.nombre)}</b><div class="m">${h.ini} → ${dd(h.fin)} · ${h.n} personas · ${bs(h.total)} recaudado</div></div><button class="b s g" onclick="verH('${h.id}')">Ver</button></div>`).join('')}</div>`:''}
+function verH(id){const h=S.hist.find(x=>x.id==id);$('#modal').innerHTML=`<div class="ov" onclick="if(event.target==this)closeM()"><div class="sh"><h2>${esc(h.nombre)}</h2><div class="m">Inicio ${h.ini} · cierre ${dd(h.fin)}<br>Cuota ${bs(h.monto)} · recaudado ${bs(h.total)}</div><h2 style="margin-top:12px">Puntualidad final</h2>${h.filas.map((x,i)=>`<div class="row"><span class="n">${i+1}</span><div class="f"><b>${esc(x.name)}</b><div class="m">${x.pct==null?'Sin cuotas':x.pct+'% · '+x.pts+' pts'+(x.od?' · '+x.od+' vencida(s)':'')}</div></div>${x.elig?'<span class="tg ok">⭐ Prioridad</span>':''}</div>`).join('')}<button class="b g" onclick="closeM()">Cerrar</button></div></div>`}
+function edE(id){const p=S.people.find(x=>x.id==id),e=prompt('Correo de '+p.name+' (vacío para quitar acceso)',p.email||'');if(e===null)return;p.email=e.trim().toLowerCase();save();render()}
+async function mkAcc(id){const p=S.people.find(x=>x.id==id);if(!p.email)return toast('Primero pon su correo (botón ✉️)');const pw=prompt('Contraseña temporal para '+p.email+' (mínimo 6 caracteres)');if(!pw||pw.length<6)return;
+try{await FB.mk(p.email,pw);prompt('Acceso creado. Copia y envíale estos datos:',location.href.split('#')[0]+'\nCorreo: '+p.email+'\nContraseña: '+pw)}catch(e){toast(e.code=='auth/email-already-in-use'?'Ese correo ya tiene acceso':'No se pudo crear ('+(e.code||'error')+')')}}
+function showQR(){$('#modal').innerHTML=`<div class="ov" onclick="if(event.target==this)closeM()"><div class="sh"><h2>Pagar con QR</h2>${S.cfg.qr?`<img class="qr" src="${S.cfg.qr}" alt="QR"><p class="m c">Haz tu pago y avisa al administrador: él confirma el cobro en la app.</p>`:'<p class="m">El administrador aún no subió su QR.</p>'}<button class="b g" onclick="closeM()">Cerrar</button></div></div>`}
+function vMi(){const p=S.people.find(x=>x.id==S.yo);
+if(noData||!p)return `<div class="card c"><h2>Tu cuenta aún no tiene datos</h2><p class="m">Pide al administrador que registre tu correo y guarde un cambio para sincronizar.</p><button class="b g" onclick="FB.logout()">Cerrar sesión</button></div>`;
+const i=S.people.indexOf(p),r=curRound(),ex=isRec(r,p),y=S.pays[key(r,p.id)],rest=+(mon()-paidAmt(r,p.id)).toFixed(2),d=due(r),s=stats(p);let cur;
+if(ex)cur=`<b>👑 Esta ronda recibes el pozo de ${bs(exp(r))}</b><div class="m">No pagas cuota</div>`;
+else if(y)cur=`<b>✅ Cuota pagada</b><div class="m">${y.ok?'A tiempo':'Fuera de hora'} · ${fd(y.ts)}</div>`;
+else cur=`<b>Debes ${bs(rest)}</b><div class="m">Vence ${fd(d)} · ${d<new Date()?'⚠️ vencida':'en '+dur(d-Date.now())}</div>${S.cfg.multa&&d<new Date()?`<div class="m">Multa por mora: ${bs(S.cfg.multa)}</div>`:''}<button class="b" onclick="showQR()">📱 Ver QR para pagar</button>`;
+let h='';for(let k=1;k<=N();k++){const q=S.pays[key(k,p.id)],pp=abon(k,p.id).length,dk=due(k);
+const t=isRec(k,p)?['rc2','👑 Recibes']:q?(q.ok?['ok','A tiempo']:['wn','Tarde']):pp?['wn','Parcial']:dk<new Date()?['bad','Vencida']:['','Pendiente'];
+h+=`<div class="row"><span class="n">${k}</span><div class="f"><b>${dd(dk)}</b></div><span class="tg ${t[0]}">${t[1]}</span></div>`}
+return `<h1>${esc(S.cfg.nombre)}</h1><div class="card hero"><div class="m">Hola</div><div class="big">${esc(p.name)}</div><div class="m">${recv(i,p)}</div><div class="m" style="margin-top:6px">Puntualidad: ${s.pct==null?'—':s.pct+'%'} · ${s.pts} pts${s.st>1?' · 🔥 '+s.st+' seguidas':''}</div></div><div class="card"><div class="m">Ronda ${r} de ${N()}</div>${cur}</div><h2 style="margin-top:14px">Mis rondas</h2>${h}<button class="b g" onclick="FB.logout()">Cerrar sesión</button>`}
 function vLogin(){return `<div class="login"><div class="logo">💰</div><h1>Pasanaco</h1><p class="m">Ingresa para administrar los pagos</p><input id="le" type="email" placeholder="Correo" autocomplete="username"><input id="lp" type="password" placeholder="Contraseña" autocomplete="current-password"><button class="b" onclick="doLogin()">Ingresar</button></div>`}
 function doLogin(){FB.login($('#le').value.trim(),$('#lp').value).catch(()=>toast('Correo o contraseña incorrectos'))}
 function start(){if(window.started)return;window.started=1;if(!window.FB||!FB.ok){render();return}cloud=true;
-FB.watch(u=>{user=u;if(unsub){unsub();unsub=null}
-if(u)unsub=FB.sub((d,pend,err)=>{if(err){toast('Sin permisos o sin conexión');return}
+FB.watch(u=>{user=u;role='admin';noData=false;sup=false;DU=[];if(u)FB.listD().then(l=>{sup=true;DU=l;if(role=='admin'&&tab=='cfg'&&!$('#modal').innerHTML)render()}).catch(()=>{});if(unsub){unsub();unsub=null}
+if(u)unsub=FB.sub((d,pend,err)=>{if(err){if(role=='admin'&&/permission/i.test(err.code||err.message||'')){role='cliente';if(unsub)unsub();unsub=FB.subC(u.email.toLowerCase(),(d2,e2)=>{if(e2||d2==null){noData=true;render();return}noData=false;try{S=JSON.parse(d2)}catch(x){}if(!$('#modal').innerHTML)render()});render();return}toast('Sin conexión');return}
 if(d==null){FB.push(JSON.stringify(S));return}if(pend)return;
 try{S=JSON.parse(d)}catch(e){}norm();
 const a=document.activeElement;if(!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))&&!$('#modal').innerHTML)render()});
@@ -178,8 +208,8 @@ if(window.FB)start();else{addEventListener('fbready',start);$('#app').innerHTML=
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {getFirestore,doc,setDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {getFirestore,doc,writeBatch,onSnapshot,setDoc,getDocs,collection,query,where,deleteDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 const firebaseConfig={
   apiKey:"AIzaSyAOLUj-yij8lrjr8LHLl64AXYx67swe0uY",
   authDomain:"pasanacoqr.firebaseapp.com",
@@ -190,10 +220,14 @@ const firebaseConfig={
 };
 const ok=!firebaseConfig.apiKey.startsWith("PEGA");
 window.FB={ok};
-if(ok){const app=initializeApp(firebaseConfig),au=getAuth(app),ref=doc(getFirestore(app),"pasanaco","datos");
+if(ok){const app=initializeApp(firebaseConfig),au=getAuth(app),db=getFirestore(app),R=()=>doc(db,"pasanacos",au.currentUser.uid),mk=async(e,p)=>{const x=getAuth(initializeApp(firebaseConfig,"sec"+Date.now()));try{return (await createUserWithEmailAndPassword(x,e,p)).user.uid}finally{await signOut(x)}};
 Object.assign(window.FB,{login:(e,p)=>signInWithEmailAndPassword(au,e,p),logout:()=>signOut(au),watch:cb=>onAuthStateChanged(au,cb),
-sub:cb=>onSnapshot(ref,s=>cb(s.exists()?s.data().data:null,s.metadata.hasPendingWrites),e=>cb(null,false,e)),
-push:t=>setDoc(ref,{data:t,ts:Date.now()})})}
+sub:cb=>onSnapshot(R(),s=>cb(s.exists()?s.data().data:null,s.metadata.hasPendingWrites),e=>cb(null,false,e)),
+subC:(m,cb)=>onSnapshot(query(collection(db,"clientes"),where("email","==",m)),q=>{const a=q.docs.map(d=>d.data()).sort((x,y)=>(y.ts||0)-(x.ts||0));cb(a.length?a[0].data:null)},e=>cb(null,e)),
+push:(t,cl,del)=>{const u=au.currentUser.uid,b=writeBatch(db);b.set(R(),{data:t,ts:Date.now()});Object.entries(cl||{}).forEach(([m,v])=>b.set(doc(db,"clientes",u+"_"+m),{data:v,email:m,dueno:u,ts:Date.now()}));(del||[]).forEach(m=>b.delete(doc(db,"clientes",u+"_"+m)));return b.commit()},
+mk,mkD:async(e,p,n)=>{const u=await mk(e,p);await setDoc(doc(db,"duenos",u),{email:e,nombre:n||'',ts:Date.now()});return u},
+listD:async()=>(await getDocs(collection(db,"duenos"))).docs.map(d=>({id:d.id,...d.data()})),
+delD:id=>deleteDoc(doc(db,"duenos",id))})}
 window.dispatchEvent(new Event("fbready"));
 </script>
 </body></html>
